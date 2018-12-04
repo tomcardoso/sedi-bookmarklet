@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>SEDI bookmarklet</title>
+    <style media="screen">
+
+      @-webkit-keyframes BackgroundGradient {
+          0% { background-position: 0% 50% }
+          50% { background-position: 100% 50% }
+          100% { background-position: 0% 50% }
+      }
+      @-moz-keyframes BackgroundGradient {
+          0% { background-position: 0% 50% }
+          50% { background-position: 100% 50% }
+          100% { background-position: 0% 50% }
+      }
+      @keyframes BackgroundGradient {
+          0% { background-position: 0% 50% }
+          50% { background-position: 100% 50% }
+          100% { background-position: 0% 50% }
+      }
+
+      body {
+        background: linear-gradient(270deg, #e176c5, #9ad2f9);
+        background-size: 400% 400%;
+        -webkit-animation: BackgroundGradient 20s ease infinite;
+        -moz-animation: BackgroundGradient 20s ease infinite;
+        animation: BackgroundGradient 20s ease infinite;
+      }
+
+      .content-outer {
+        position: relative;
+        height: 100vh;
+        width: 600px;
+        margin: 0 auto;
+      }
+
+      .content {
+        width: 100%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+      h1, p {
+        margin: 0 auto;
+        font-family: Helvetica;
+        padding: 0;
+        margin-bottom: 1rem;
+      }
+
+      h1 {
+        font-size: 3rem;
+        margin-bottom: 2rem;
+      }
+
+      h1 span {
+        border-bottom: 7px solid black;
+      }
+
+      p {
+        font-size: 1.3rem;
+        line-height: 1.4;
+      }
+
+      p:last-of-type {
+        margin-top: 2rem;
+      }
+
+      a {
+        color: black;
+      }
+
+      #bookmarklet {
+        padding: 0.3em 0.5em;
+        border-radius: 6px;
+        border: 3px solid black;
+        font-weight: bold;
+        text-decoration: none;
+      }
+
+    </style>
+  </head>
+  <body>
+    <div class="content-outer">
+      <div class="content">
+        <h1><span>SEDI bookmarklet</span></h1>
+        <p>Copying and pasting data from <a href="https://www.sedi.ca/sedi/">SEDI</a> (Canada&rsquo;s System for Electronic Disclosure of Insiders, an insider trading report database) can be a bit touch-and-go, so this is a bookmarklet that&rsquo;ll download a CSV version of the &lsquo;insider transaction detail&rsquo; page. Just drag the button below into your bookmarks bar and you&rsquo;re good to go. Will only work in latest versions of desktop Chrome and Firefox.</p>
+        <p><a id="bookmarklet" href="javascript:javascript: (function () { var e = document.createElement('script'); e.setAttribute('src', 'https://tomcardoso.github.io/sedi-bookmarklet/bookmarklet.js'); e.setAttribute('class', 'sedi-bookmarklet'); document.body.appendChild(e); })();">Download from SEDI</a></p>
+      </div>
+    </div>
+  </body>
+</html>
