@@ -1,13 +1,14 @@
 (function() {
 
-  let pageType;
+  let pageType, hasRemarks;
 
   const issuerNameRegex = /^Issuer name:.*/,
     insiderNameRegex = /^Insider name:.*/,
     insiderRelationshipRegex = /^Insider's Relationship to Issuer:.*/,
     ceasedToBeInsiderRegex = /^Ceased to be Insider:.*/,
     securityDesignationRegex = /^Security designation:.*/,
-    endRegex = /^To download this information.*/;
+    endRegex = /^To download this information.*/,
+    generalRemarksRegex = /^General remarks:.*/;
 
   const ignoreRows = [
     "Legend: O - Original transaction, A - First amendment to transaction, A' - Second amendment to transaction, AP - Amendment to paper filing, etc.",
@@ -39,6 +40,17 @@
     'Equivalent number or value of underlying securities acquired or disposed of',
     'Closing balance of equivalent number or value of underlying securities',
   ];
+
+  // if it has remarks on, add to header and flip flag
+  const remarksTest = document
+    .querySelector('body > table:nth-child(2) > tbody > tr:nth-child(3) > td > table > tbody > tr > td > table:nth-child(22) > tbody > tr > td:nth-child(1) > i > font')
+    .textContent
+    .trim()
+    .indexOf('without');
+
+  hasRemarks = remarksTest > -1;
+
+  if (hasRemarks) header.push('General remarks');
 
   const finalData = [];
 
@@ -293,9 +305,21 @@
         }
       });
 
+    const generalRemarks = secDesTableData
+      .map(row => {
+        const str = row.textContent.trim().replace(/\s+/g, ' '),
+          strClean = str.replace(/.+:/, '').trim();
+        switch (true) {
+          case generalRemarksRegex.test(str):
+            return strClean;
+        }
+      })
+      .filter(d => d !== undefined);
+
     secDesTable = secDesTableData
       .filter((row, i) => secDesTableRemoveIndices.indexOf(i) === -1)
-      .map(row => {
+      .filter(row => !generalRemarksRegex.test(row.textContent.trim().replace(/\s+/g, ' ')))
+      .map((row, i) => {
 
         const rowData = template.slice();
 
@@ -327,9 +351,13 @@
         rowData[18] = td[18]; // 'Equivalent number or value of underlying securities acquired or disposed of'
         rowData[19] = td[19]; // 'Closing balance of equivalent number or value of underlying securities'
 
+        if (hasRemarks) rowData[20] = generalRemarks[i]; // adds remarks if applicable
+
         finalData.push(rowData);
 
       });
+
+    finalData.push(template.slice().fill(' '));
 
   }
 
