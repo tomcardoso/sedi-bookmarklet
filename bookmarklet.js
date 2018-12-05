@@ -1,8 +1,5 @@
 (function() {
 
-  // TODO:
-  // make bookmarklet work for insider-based search as well as issuer-based search
-
   let pageType;
 
   const issuerNameRegex = /^Issuer name:.*/,
@@ -209,7 +206,6 @@
 
     grayTableData
       .map((row, i) => {
-        // if (row === undefined) debugger;
         const str = row.textContent.trim().replace(/\s+/g, ' '),
           strClean = str.replace(/.+:\s/, '');
         switch (true) {
