@@ -32,6 +32,7 @@
     'Nature of transaction',
     'Number or value acquired or disposed of',
     'Unit price or exercise price',
+    'Unit currency, if not CAD',
     'Closing balance',
     'Insider\'s calculated balance',
     'Conversion or exercise price',
@@ -343,15 +344,16 @@
         rowData[10] = td[8]; // 'Nature of transaction'
         rowData[11] = td[9]; // 'Number or value acquired or disposed of'
         rowData[12] = td[10]; // 'Unit price or exercise price'
-        rowData[13] = td[12]; // 'Closing balance'
-        rowData[14] = td[13]; // 'Insider's calculated balance'
-        rowData[15] = td[14]; // 'Conversion or exercise price'
-        rowData[16] = td[16]; // 'Date of expiry or maturity'
-        rowData[17] = td[17]; // 'Underlying security designation'
-        rowData[18] = td[18]; // 'Equivalent number or value of underlying securities acquired or disposed of'
-        rowData[19] = td[19]; // 'Closing balance of equivalent number or value of underlying securities'
+        rowData[13] = td[11]; // 'Unit price, if not CAD'
+        rowData[14] = td[12]; // 'Closing balance'
+        rowData[15] = td[13]; // 'Insider's calculated balance'
+        rowData[16] = td[14]; // 'Conversion or exercise price'
+        rowData[17] = td[16]; // 'Date of expiry or maturity'
+        rowData[18] = td[17]; // 'Underlying security designation'
+        rowData[19] = td[18]; // 'Equivalent number or value of underlying securities acquired or disposed of'
+        rowData[20] = td[19]; // 'Closing balance of equivalent number or value of underlying securities'
 
-        if (hasRemarks) rowData[20] = generalRemarks[i]; // adds remarks if applicable
+        if (hasRemarks) rowData[21] = generalRemarks[i]; // adds remarks if applicable
 
         finalData.push(rowData);
 
