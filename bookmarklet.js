@@ -337,6 +337,7 @@
         rowData[4] = securityDesignation;
 
         rowData[5] = td[2]; // 'Transaction type'
+        // td[3] function unknown
         rowData[6] = td[4]; // 'Transaction ID'
         rowData[7] = td[5]; // 'Date of transaction'
         rowData[8] = td[6]; // 'Date of filing'
@@ -348,10 +349,13 @@
         rowData[14] = td[12]; // 'Closing balance'
         rowData[15] = td[13]; // 'Insider's calculated balance'
         rowData[16] = td[14]; // 'Conversion or exercise price'
+        // td[15] function unknown
         rowData[17] = td[16]; // 'Date of expiry or maturity'
         rowData[18] = td[17]; // 'Underlying security designation'
         rowData[19] = td[18]; // 'Equivalent number or value of underlying securities acquired or disposed of'
         rowData[20] = td[19]; // 'Closing balance of equivalent number or value of underlying securities'
+
+        // td[20] function unknown
 
         if (hasRemarks) rowData[21] = generalRemarks[i]; // adds remarks if applicable
 
