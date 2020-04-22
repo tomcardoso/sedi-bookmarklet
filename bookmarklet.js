@@ -62,7 +62,8 @@
   const anchor = document.createElement('a');
 
   anchor.setAttribute('href', `data:text/csv;charset=utf-8,${encodeURIComponent(sediBookmarklet(document))}`);
-  anchor.setAttribute('download', 'sedi.csv');
+  anchor.setAttribute('download', constructFilename());
+
   anchor.click();
 
   function jsonToCSV(objArray, config) {
@@ -365,6 +366,33 @@
 
     finalData.push(template.slice().fill(' '));
 
+  }
+
+  function extractDateRange() {
+    const monthFrom = (parseInt(document.querySelector('input[name="MONTH_FROM_PUBLIC"]').value) + 1).toString(),
+      dayFrom = document.querySelector('input[name="DAY_FROM_PUBLIC"]').value,
+      yearFrom = document.querySelector('input[name="YEAR_FROM_PUBLIC"]').value,
+      monthTo = (parseInt(document.querySelector('input[name="MONTH_TO_PUBLIC"]').value) + 1).toString(),
+      dayTo = document.querySelector('input[name="DAY_TO_PUBLIC"]').value,
+      yearTo = document.querySelector('input[name="YEAR_TO_PUBLIC"]').value;
+
+    const fromDate = `${yearFrom}${monthFrom.padStart(2, '0')}${dayFrom.padStart(2, '0')}`,
+      toDate = `${yearTo}${monthTo.padStart(2, '0')}${dayTo.padStart(2, '0')}`;
+
+    return `${fromDate}-${toDate}`;
+  }
+
+  function extractDateRangeType() {
+    const dateRangeType = document.querySelector('input[name="DATE_RANGE_TYPE"]').value;
+    return dateRangeType == 0 ? 'transactions' : 'filings';
+  }
+
+  function constructFilename() {
+    const sediNumber = document.querySelector('input[name="ATTRIB_DRILL_ID"]').value;
+
+    const sediName = document.querySelector('body > table:nth-child(2) > tbody > tr:nth-child(3) > td > table > tbody > tr > td > table:nth-child(15) > tbody > tr > td:nth-child(2)').textContent.trim().replace(/[^a-z0-9]/gi, ''); // need to sanitize
+
+    return `sedi_${sediName}_${sediNumber}_${extractDateRangeType()}_${extractDateRange()}.csv`;
   }
 
 })();
