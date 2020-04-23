@@ -1,6 +1,6 @@
 (function() {
 
-  let pageType, hasRemarks;
+  let pageType;
 
   const issuerNameRegex = /^Issuer name:.*/,
     insiderNameRegex = /^Insider name:.*/,
@@ -49,7 +49,7 @@
     .trim()
     .indexOf('without');
 
-  hasRemarks = remarksTest > -1;
+  const hasRemarks = remarksTest > -1;
 
   if (hasRemarks) header.push('General remarks');
 
