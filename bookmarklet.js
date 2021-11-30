@@ -383,8 +383,8 @@
   }
 
   function extractDateRangeType() {
-    const dateRangeType = document.querySelector('input[name="DATE_RANGE_TYPE"]').value;
-    return dateRangeType == 0 ? 'transactions' : 'filings';
+    const dateRangeType = document.querySelector('input[name="DATE_RANGE_TYPE"]');
+    return dateRangeType.value == 0 ? 'transactions' : 'filings';
   }
 
   function constructFilename() {
@@ -392,7 +392,21 @@
 
     const sediName = document.querySelector('body > table:nth-child(2) > tbody > tr:nth-child(3) > td > table > tbody > tr > td > table:nth-child(15) > tbody > tr > td:nth-child(2)').textContent.trim().replace(/[^a-z0-9]/gi, ''); // need to sanitize
 
-    return `sedi_${sediName}_${sediNumber}_${extractDateRangeType()}_${extractDateRange()}.csv`;
+    const dateRangeType = document.querySelector('input[name="DATE_RANGE_TYPE"]');
+
+    let filenameSuffix;
+
+    if (dateRangeType === null) {
+      const currDate = new Date(),
+        offset = currDate.getTimezoneOffset(),
+        offsetDate = new Date(currDate.getTime() - (offset * 60 * 1000)),
+        cleanedUpDate = offsetDate.toISOString().replace(/[-T:]/g, '').replace(/\..+/, '');
+      filenameSuffix = `as_of_${cleanedUpDate}`;
+    } else {
+      filenameSuffix = `${extractDateRangeType()}_${extractDateRange()}`;
+    }
+
+    return `sedi_${sediName}_${sediNumber}_${filenameSuffix}.csv`;
   }
 
 })();
