@@ -1,6 +1,6 @@
 (function() {
 
-  let pageType;
+  let pageType, template;
 
   const issuerNameRegex = /^Issuer name:.*/,
     insiderNameRegex = /^Insider name:.*/,
@@ -8,14 +8,16 @@
     ceasedToBeInsiderRegex = /^Ceased to be Insider:.*/,
     securityDesignationRegex = /^Security designation:.*/,
     endRegex = /^To download this information.*/,
-    generalRemarksRegex = /^General remarks:.*/;
+    hasRemarksRegex = /^Do you want to view transactions.*/,
+    generalRemarksRegex = /^General remarks:.*/,
+    transactionIdRegex = /^Transaction ID.*/;
 
   const ignoreRows = [
     "Legend: O - Original transaction, A - First amendment to transaction, A' - Second amendment to transaction, AP - Amendment to paper filing, etc.",
     "Insider's Relationship to Issuer: 1 - Issuer, 2 - Subsidiary of Issuer, 3 - 10% Security Holder of Issuer, 4 - Director of Issuer, 5 - Senior Officer of Issuer, 6 - Director or Senior Officer of 10% Security Holder, 7 - Director or Senior Officer of Insider or Subsidiary of Issuer (other than in 4,5,6), 8 - Deemed Insider - 6 Months before becoming Insider.",
     'Warning: The closing balance of the " equivalent number or value of underlying securities" reflects the" total number or value of underlying securities" to which the derivative contracts held by the insider relate. This disclosure does not mean and should not be taken to indicate that the underlying securities have, in fact, been acquired or disposed of by the insider.',
     'Do you want to view transactions with remarks?',
-    "Transaction ID Date of transactionYYYY-MM-DD Date of filingYYYY-MM-DD Ownership type (and registered holder, if applicable) Nature of transaction Number or value acquired or disposed of Unit price or exercise price Closing balance Insider's calculated balance Conversionor exerciseprice Date of expiry or maturityYYYY-MM-DD Underlying security designation Equivalent number or value of underlying securities acquired or disposed of Closing balance of equivalent number or value of underlying securities"
+    // "Transaction ID Date of transactionYYYY-MM-DD Date of filingYYYY-MM-DD Ownership type (and registered holder, if applicable) Nature of transaction Number or value acquired or disposed of Unit price or exercise price Closing balance Insider's calculated balance Conversionor exerciseprice Date of expiry or maturityYYYY-MM-DD Underlying security designation Equivalent number or value of underlying securities acquired or disposed of Closing balance of equivalent number or value of underlying securities"
   ];
 
   const header = [
@@ -25,39 +27,30 @@
     'Ceased to be Insider',
     'Security designation',
     'Transaction type',
-    'Transaction ID',
-    'Date of transaction',
-    'Date of filing',
-    'Ownership type',
-    'Nature of transaction',
-    'Number or value acquired or disposed of',
-    'Unit price or exercise price',
-    'Unit currency, if not CAD',
-    'Closing balance',
-    'Insider\'s calculated balance',
-    'Conversion or exercise price',
-    'Date of expiry or maturity',
-    'Underlying security designation',
-    'Equivalent number or value of underlying securities acquired or disposed of',
-    'Closing balance of equivalent number or value of underlying securities',
+    // 'Transaction ID',
+    // 'Date of transaction',
+    // 'Date of filing',
+    // 'Ownership type',
+    // 'Nature of transaction',
+    // 'Number or value acquired or disposed of',
+    // 'Unit price or exercise price',
+    // 'Unit currency, if not CAD',
+    // 'Closing balance',
+    // 'Insider\'s calculated balance',
+    // 'Conversion or exercise price',
+    // 'Date of expiry or maturity',
+    // 'Underlying security designation',
+    // 'Equivalent number or value of underlying securities acquired or disposed of',
+    // 'Closing balance of equivalent number or value of underlying securities',
   ];
 
   // if it has remarks on, add to header and flip flag
-  const remarksTest = document
-    .querySelector('body > table:nth-child(2) > tbody > tr:nth-child(3) > td > table > tbody > tr > td > table:nth-child(22) > tbody > tr > td:nth-child(1) > i > font')
-    .textContent
-    .trim()
-    .indexOf('without');
 
-  const hasRemarks = remarksTest > -1;
-
-  if (hasRemarks) header.push('General remarks');
+  let hasRemarks = false;
 
   const finalData = [];
 
   finalData.push(header);
-
-  const template = Array(header.length).join('.').split('.');
 
   const anchor = document.createElement('a');
 
@@ -99,15 +92,22 @@
 
   function sediBookmarklet() {
 
-    pageType = document
-      .querySelector('body > table:nth-child(2) > tbody > tr:nth-child(3) > td > table > tbody > tr > td > table:nth-child(15) > tbody > tr > td:nth-child(1) > b > font')
-      .textContent
-      .replace('name:', '')
-      .trim()
-      .toLowerCase();
+    const indicatorAName = Array.from(document.querySelectorAll('a')).filter(d => d.hasAttribute('name'))[2];
+
+    const pageTypeEl = document
+      .querySelector(`a[name='${indicatorAName.name}'] ~ table ~ table > tbody > tr > td:nth-child(1) font`);
+
+    if (pageTypeEl === null) {
+      pageType = 'issuer';
+    } else {
+      pageType = pageTypeEl
+        .textContent
+        .replace('name:', '')
+        .trim()
+        .toLowerCase();
+    }
 
     // if "insider"-mode report, flip header order
-
     if (pageType === 'insider') {
       const temp = header[0];
       header[0] = header[1];
@@ -125,19 +125,41 @@
 
     const firstOrderNameRegex = pageType === 'issuer' ? issuerNameRegex : insiderNameRegex;
 
+    // Handle headers and determine when to start and end each table lookup
     data.map((d, i) => {
+      if (transactionIdRegex.test(d.textContent.trim())) {
+        // construct our headers
+        const headerValues = Array.from(d.querySelectorAll('td'))
+          .map(d => d.textContent.trim().replace('YYYY-MM-DD', ''))
+          .filter(d => d !== '');
+        const unitPriceIdx = headerValues.indexOf('Unit price or exercise price');
+        headerValues.splice(unitPriceIdx + 1, 0, 'Unit currency, if not CAD');
+        header.splice(header.length, 0, ...headerValues);
+      }
       if (firstOrderNameRegex.test(d.textContent.trim())) startIndices.push(i);
       if (endRegex.test(d.textContent.trim())) endIndex = i;
     });
 
+    // Since remarks come after header construction,
+    // need to handle this afterwards
+    data.map(d => {
+      if (!hasRemarks && hasRemarksRegex.test(d.textContent.trim())) {
+        const remarksTest = d.textContent.trim().indexOf('without');
+        hasRemarks = remarksTest > -1;
+        if (hasRemarks) header.push('General remarks');
+      }
+    });
+
+    template = Array(header.length).join('.').split('.');
+
     startIndices.push(endIndex);
 
     // tables that start with either "Issuer name" or "Insider name"
-
-    const parentTables = startIndices
+    startIndices
       .map((d, i) => i !== 0 ? data.slice(startIndices[i - 1], d) : undefined)
       .filter(d => d)
       .map(d => {
+        // this is where data extraction occurs, writing to the finalData object
         extractParentTable(d);
       });
 
@@ -337,28 +359,19 @@
         rowData[3] = ceasedToBeInsider;
         rowData[4] = securityDesignation;
 
-        rowData[5] = td[2]; // 'Transaction type'
-        // td[3] function unknown
-        rowData[6] = td[4]; // 'Transaction ID'
-        rowData[7] = td[5]; // 'Date of transaction'
-        rowData[8] = td[6]; // 'Date of filing'
-        rowData[9] = td[7]; // 'Ownership type'
-        rowData[10] = td[8]; // 'Nature of transaction'
-        rowData[11] = td[9]; // 'Number or value acquired or disposed of'
-        rowData[12] = td[10]; // 'Unit price or exercise price'
-        rowData[13] = td[11]; // 'Unit price, if not CAD'
-        rowData[14] = td[12]; // 'Closing balance'
-        rowData[15] = td[13]; // 'Insider's calculated balance'
-        rowData[16] = td[14]; // 'Conversion or exercise price'
-        // td[15] function unknown
-        rowData[17] = td[16]; // 'Date of expiry or maturity'
-        rowData[18] = td[17]; // 'Underlying security designation'
-        rowData[19] = td[18]; // 'Equivalent number or value of underlying securities acquired or disposed of'
-        rowData[20] = td[19]; // 'Closing balance of equivalent number or value of underlying securities'
+        let tdSkip = 0;
 
-        // td[20] function unknown
+        for (var j = 5; j < rowData.length; j++) {
+          // td[3], td[15] and td[20] are seemingly always empty, likely spacers,
+          // so let's skip them and adjust the count accordingly
+          if ([6, 17, 21].indexOf(j) > -1) tdSkip++;
+          const tdIndex = j - 3 + tdSkip;
+          rowData[j] = td[tdIndex]
+          // console.log(`rowData[${i}] equals td[${tdIndex}]`);
+        }
 
-        if (hasRemarks) rowData[21] = generalRemarks[i]; // adds remarks if applicable
+
+        if (hasRemarks) rowData[rowData.length - 1] = generalRemarks[i]; // adds remarks if applicable
 
         finalData.push(rowData);
 
@@ -388,9 +401,13 @@
   }
 
   function constructFilename() {
+    const sediName = document.querySelector('body > table:nth-child(2) > tbody > tr:nth-child(3) > td > table > tbody > tr > td > table:nth-child(15) > tbody > tr > td:nth-child(2)').textContent.trim().replace(/[^a-z0-9]/gi, ''); // need to sanitize
+
     const sediNumber = document.querySelector('input[name="ATTRIB_DRILL_ID"]').value;
 
-    const sediName = document.querySelector('body > table:nth-child(2) > tbody > tr:nth-child(3) > td > table > tbody > tr > td > table:nth-child(15) > tbody > tr > td:nth-child(2)').textContent.trim().replace(/[^a-z0-9]/gi, ''); // need to sanitize
+    let filenamePrefix = '';
+    if (sediName) filenamePrefix = `${sediName}_`
+    if (sediNumber) filenamePrefix = `${filenamePrefix}${sediNumber}_`;
 
     const dateRangeType = document.querySelector('input[name="DATE_RANGE_TYPE"]');
 
@@ -406,7 +423,7 @@
       filenameSuffix = `${extractDateRangeType()}_${extractDateRange()}`;
     }
 
-    return `sedi_${sediName}_${sediNumber}_${filenameSuffix}.csv`;
+    return `sedi_${filenamePrefix}${filenameSuffix}.csv`;
   }
 
 })();
