@@ -204,21 +204,14 @@
 
     // tables that start with the gray block
 
-    let grayTables;
-
-    if (grayTableStartIndices.length === 1) {
-      grayTables = [parentTable.slice()];
-    } else {
-      grayTables = grayTableStartIndices
-        .map((d, i) => {
-          if (i === grayTableStartIndices.length - 1) {
-            return parentTable.slice(d, parentTable.length);
-          } else {
-            return parentTable.slice(d, grayTableStartIndices[i + 1]);
-          }
-        });
-
-    }
+    const grayTables = grayTableStartIndices
+      .map((d, i) => {
+        if (i === grayTableStartIndices.length - 1) {
+          return parentTable.slice(d, parentTable.length);
+        } else {
+          return parentTable.slice(d, grayTableStartIndices[i + 1]);
+        }
+      });
 
     grayTables.map(d => {
       extractGrayTable(d, {
@@ -277,20 +270,14 @@
 
     // tables that start with "security designation" bit
 
-    let secDesTables;
-
-    if (secDesTableStartIndices.length === 1) {
-      secDesTables = [grayTable.slice()];
-    } else {
-      secDesTables = secDesTableStartIndices
-        .map((d, i) => {
-          if (i === secDesTableStartIndices.length - 1) {
-            return grayTable.slice(d, grayTable.length);
-          } else {
-            return grayTable.slice(d, secDesTableStartIndices[i + 1]);
-          }
-        });
-    }
+    const secDesTables = secDesTableStartIndices
+      .map((d, i) => {
+        if (i === secDesTableStartIndices.length - 1) {
+          return grayTable.slice(d, grayTable.length);
+        } else {
+          return grayTable.slice(d, secDesTableStartIndices[i + 1]);
+        }
+      });
 
     const issuerName = pageType === 'issuer' ? firstOrderName : secondOrderName,
       insiderName = pageType === 'issuer' ? secondOrderName : firstOrderName;
@@ -369,7 +356,6 @@
           rowData[j] = td[tdIndex]
           // console.log(`rowData[${i}] equals td[${tdIndex}]`);
         }
-
 
         if (hasRemarks) rowData[rowData.length - 1] = generalRemarks[i]; // adds remarks if applicable
 
