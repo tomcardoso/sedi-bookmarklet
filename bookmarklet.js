@@ -4,15 +4,8 @@
 
   let reportType;
 
-  switch (reportUrl) {
-    case 'SVTIIBIviewResults':
-      reportType = 'insiderByIssuer';
-      break;
-    case 'SVTItdSelectInsider':
-    case 'SVTItdSelectIssuer':
-      reportType = 'insiderTransactionDetail';
-      break;
-  }
+  if (/^SVTIIBI/.test(reportUrl)) reportType = 'insiderByIssuer';
+  if (/^SVTItd/.test(reportUrl)) reportType = 'insiderTransactionDetail';
 
   // If format doesn't match either page, we're done
   if (!reportType) return;
